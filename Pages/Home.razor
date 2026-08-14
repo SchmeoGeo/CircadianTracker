@@ -1,0 +1,308 @@
+﻿@page "/"
+@inject IJSRuntime JS
+@using System.Text.Json
+
+<div class="tracker-container">
+    <h2>Circadian Tracker</h2>
+    <div class="subtitle">Morning Sunlight</div>
+    
+    <div class="month-navigation">
+        <button class="nav-btn" @onclick="() => ChangeMonth(-1)">◀</button>
+        <div class="month-title">@CurrentViewDate.ToString("MMMM yyyy")</div>
+        <button class="nav-btn" @onclick="() => ChangeMonth(1)">▶</button>
+    </div>
+    
+    <div class="stats-bar">
+        <span class="badge">🔥 Streak: @CalculateStreak()</span>
+        <span class="badge">☀️ Total: @DaysInMonth.Count(d => d.IsCompleted)/@DaysInMonth.Count</span>
+    </div>
+
+    <div class="calendar-header">
+        <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
+    </div>
+    
+    <div class="calendar-grid">
+        <!-- Draw the invisible spacer boxes first -->
+        @for (int i = 0; i < EmptyDaysAtStart; i++)
+        {
+            <div class="day-box empty"></div>
+        }
+
+        <!-- Draw the actual days of the month -->
+        @foreach (var day in DaysInMonth)
+        {
+            <button class="day-box @(day.IsCompleted ? "completed" : "") @(day.Date == DateTime.Today ? "today" : "")" 
+                    @onclick="() => ToggleDay(day)">
+                <span class="date-num">@day.Date.Day</span>
+                @if(day.IsCompleted)
+                {
+                    <span class="check">☀️</span>
+                }
+            </button>
+        }
+    </div>
+</div>
+
+<style>
+    /* 1. Global Reset: Remove default body margins and force box-sizing everywhere */
+    *, *::before, *::after {
+        box-sizing: border-box;
+    }
+
+    /* Prevent horizontal scrolling on the entire document */
+    html, body {
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+        width: 100%;
+    }
+
+    .tracker-container {
+        max-width: 400px;
+        width: 100%; /* Ensures it scales down smoothly on tiny screens */
+        margin: 0 auto;
+        padding: 1rem;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        text-align: center;
+    }
+
+    .stats-bar {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap; /* Keeps badges from overflowing on narrow screens */
+    }
+
+    .badge {
+        background: #0e0d0d;
+        color: #ffffff; /* Added white text for visibility */
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-weight: bold;
+        font-size: 0.85rem;
+    }
+
+    /* 2. Grid Responsiveness */
+    .calendar-header,
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 4px; /* Reduced gap slightly so 7 columns fit comfortably on 320px screens */
+        width: 100%;
+    }
+
+    .calendar-header {
+        margin-bottom: 8px;
+        font-size: 0.85rem;
+        font-weight: bold;
+        color: #888;
+    }
+
+    .day-box {
+        aspect-ratio: 1; 
+        min-width: 0; /* Important in CSS Grid to allow boxes to shrink below content size */
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        background: white;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        transition: all 0.2s ease;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .day-box.today {
+        border: 2px solid #007bff;
+    }
+
+    .day-box.completed {
+        background-color: #fffde7;
+        border-color: #ffd600;
+    }
+
+    .day-box.empty {
+        background: transparent;
+        border: none;
+        cursor: default;
+    }
+
+    .date-num {
+        font-size: 0.75rem;
+        color: #666;
+        line-height: 1;
+    }
+
+    .check {
+        font-size: 1rem;
+        line-height: 1;
+        margin-top: 2px;
+    }
+
+    /* 3. Header & Navigation Fixes */
+    .subtitle {
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: #444;
+        margin-bottom: 4px;
+    }
+
+    .month-navigation {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .month-title {
+        color: #555; 
+        font-weight: 500; 
+        font-size: 1rem;
+        /* Replaced fixed min-width with auto constraints */
+        white-space: nowrap;
+    }
+
+    .nav-btn {
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        color: #007bff;
+        cursor: pointer;
+        padding: 5px 10px;
+        border-radius: 8px;
+        transition: background 0.2s;
+    }
+
+    .nav-btn:active {
+        background: #e0e0e0;
+    }
+</style>
+
+@code {
+    private List<CalendarDay> DaysInMonth = new();
+    private HashSet<DateTime> AllCompletedDates = new(); 
+    private DateTime CurrentViewDate = DateTime.Today; // Tracks which month we are looking at
+    private const string StorageKey = "circadian_tracker_data";
+    
+    private int EmptyDaysAtStart = 0;
+
+    protected override void OnInitialized()
+    {
+        BuildCalendarView();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadData();
+            StateHasChanged();
+        }
+    }
+
+    private void ChangeMonth(int monthsToAdd)
+    {
+        CurrentViewDate = CurrentViewDate.AddMonths(monthsToAdd);
+        BuildCalendarView();
+    }
+
+    
+
+    // Replace your old BuildCalendarView with this one:
+    private void BuildCalendarView()
+    {
+        DaysInMonth.Clear();
+        
+        // Find the 1st day of the month we are looking at
+        var firstOfMonth = new DateTime(CurrentViewDate.Year, CurrentViewDate.Month, 1);
+        
+        // DayOfWeek returns 0 for Sunday, 1 for Monday, etc. 
+        // This perfectly matches how many empty boxes we need!
+        EmptyDaysAtStart = (int)firstOfMonth.DayOfWeek;
+
+        var daysCount = DateTime.DaysInMonth(CurrentViewDate.Year, CurrentViewDate.Month);
+        
+        for (int i = 1; i <= daysCount; i++)
+        {
+            var date = new DateTime(CurrentViewDate.Year, CurrentViewDate.Month, i);
+            DaysInMonth.Add(new CalendarDay 
+            { 
+                Date = date,
+                IsCompleted = AllCompletedDates.Contains(date) 
+            });
+        }
+    }
+
+    private async Task ToggleDay(CalendarDay day)
+    {
+        if (day.Date > DateTime.Today) return;
+
+        day.IsCompleted = !day.IsCompleted;
+        
+        if (day.IsCompleted)
+            AllCompletedDates.Add(day.Date);
+        else
+            AllCompletedDates.Remove(day.Date);
+
+        await SaveData();
+    }
+
+    private int CalculateStreak()
+    {
+        int streak = 0;
+        var checkDate = DateTime.Today;
+
+        if (!AllCompletedDates.Contains(checkDate))
+        {
+            checkDate = checkDate.AddDays(-1);
+        }
+
+        while (AllCompletedDates.Contains(checkDate))
+        {
+            streak++;
+            checkDate = checkDate.AddDays(-1);
+        }
+
+        return streak;
+    }
+
+    private async Task SaveData()
+    {
+        var datesToSave = AllCompletedDates.Select(d => d.ToString("yyyy-MM-dd")).ToList();
+        var json = JsonSerializer.Serialize(datesToSave);
+        await JS.InvokeVoidAsync("localStorage.setItem", StorageKey, json);
+    }
+
+    private async Task LoadData()
+    {
+        var json = await JS.InvokeAsync<string>("localStorage.getItem", StorageKey);
+        
+        if (!string.IsNullOrEmpty(json))
+        {
+            var savedStrings = JsonSerializer.Deserialize<List<string>>(json);
+            if (savedStrings != null)
+            {
+                foreach (var dateString in savedStrings)
+                {
+                    if (DateTime.TryParse(dateString, out DateTime parsedDate))
+                    {
+                        AllCompletedDates.Add(parsedDate);
+                    }
+                }
+                
+                // Re-run this to update the UI with the loaded data
+                BuildCalendarView(); 
+            }
+        }
+    }
+
+    public class CalendarDay
+    {
+        public DateTime Date { get; set; }
+        public bool IsCompleted { get; set; }
+    }
+}
