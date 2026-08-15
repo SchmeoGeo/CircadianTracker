@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CircadianTracker")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ca463b46e3004d774421260b7749485a8b284e90")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a721d47682b7b0709bc13b72a400e4e6667c7268")]
 [assembly: System.Reflection.AssemblyProductAttribute("CircadianTracker")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CircadianTracker")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
