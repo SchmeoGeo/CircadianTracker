@@ -1,4 +1,0 @@
-C:\Users\schmo\Documents\CircadianTracker\bin\Release\net10.0\publish\wwwroot\index.html
-C:\Users\schmo\Documents\CircadianTracker\bin\Release\net10.0\publish\CircadianTracker.runtimeconfig.json
-C:\Users\schmo\Documents\CircadianTracker\bin\Release\net10.0\publish\dotnet.js
-C:\Users\schmo\Documents\CircadianTracker\bin\Release\net10.0\publish\web.config

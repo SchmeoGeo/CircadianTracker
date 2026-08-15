@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "Xt/mrCutzwQ=",
+  "dgSpecHash": "6x9IZFmovGo=",
   "success": true,
   "projectFilePath": "C:\\Users\\schmo\\Documents\\CircadianTracker\\CircadianTracker.csproj",
   "expectedPackageFiles": [
@@ -13,6 +13,7 @@
     "C:\\Users\\schmo\\.nuget\\packages\\microsoft.aspnetcore.components.webassembly\\10.0.11\\microsoft.aspnetcore.components.webassembly.10.0.11.nupkg.sha512",
     "C:\\Users\\schmo\\.nuget\\packages\\microsoft.aspnetcore.components.webassembly.devserver\\10.0.11\\microsoft.aspnetcore.components.webassembly.devserver.10.0.11.nupkg.sha512",
     "C:\\Users\\schmo\\.nuget\\packages\\microsoft.aspnetcore.metadata\\10.0.11\\microsoft.aspnetcore.metadata.10.0.11.nupkg.sha512",
+    "C:\\Users\\schmo\\.nuget\\packages\\microsoft.dotnet.hotreload.webassembly.browser\\10.0.111\\microsoft.dotnet.hotreload.webassembly.browser.10.0.111.nupkg.sha512",
     "C:\\Users\\schmo\\.nuget\\packages\\microsoft.extensions.configuration\\10.0.11\\microsoft.extensions.configuration.10.0.11.nupkg.sha512",
     "C:\\Users\\schmo\\.nuget\\packages\\microsoft.extensions.configuration.abstractions\\10.0.11\\microsoft.extensions.configuration.abstractions.10.0.11.nupkg.sha512",
     "C:\\Users\\schmo\\.nuget\\packages\\microsoft.extensions.configuration.binder\\10.0.11\\microsoft.extensions.configuration.binder.10.0.11.nupkg.sha512",
