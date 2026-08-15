@@ -13,7 +13,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8.0.x' # Adjust to match your .NET version if needed
+        dotnet-version: '10.0.x' # Adjust to match your .NET version if needed
 
     - name: Publish Blazor Project
       run: dotnet publish -c Release -o output
